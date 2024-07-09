@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alertas de Recordatorio</title>
+    <style>
+        /* Estilos para el formulario */
+        form {
+            text-align: center;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+
+<form id="formulario">
+    <label for="mensaje">Mensaje del recordatorio:</label><br>
+    <input type="text" id="mensaje" name="mensaje" placeholder="Ingrese el mensaje del recordatorio"><br><br>
+    <label for="hora">Hora del recordatorio:</label><br>
+    <input type="time" id="hora" name="hora"><br><br>
+    <button type="submit">Guardar Recordatorio</button>
+</form>
+
+<script>
+    // Función para manejar el envío del formulario
+    document.getElementById('formulario').addEventListener('submit', function(event) {
+        event.preventDefault(); // Evitar el comportamiento por defecto del formulario
+
+        // Obtener los valores del formulario
+        var mensaje = document.getElementById('mensaje').value;
+        var hora = document.getElementById('hora').value;
+
+        // Validar que se haya ingresado un mensaje y una hora
+        if (mensaje.trim() === '' || hora.trim() === '') {
+            alert('Por favor ingrese un mensaje y seleccione una hora para el recordatorio.');
+            return;
+        }
+
+        // Obtener la hora actual
+        var ahora = new Date();
+        var horaActual = ahora.getHours() + ':' + ahora.getMinutes(); // Formato HH:MM
+
+        // Crear la fecha para el recordatorio de hoy
+        var fechaRecordatorio = new Date();
+        fechaRecordatorio.setHours(parseInt(hora.substring(0, 2))); // Hora del recordatorio
+        fechaRecordatorio.setMinutes(parseInt(hora.substring(3))); // Minutos del recordatorio
+        fechaRecordatorio.setSeconds(0); // Segundos a 0 por simplicidad
+
+        // Comparar la hora actual con la hora del recordatorio
+        if (fechaRecordatorio <= ahora) {
+            // Si la hora del recordatorio ya pasó hoy, programar para mañana
+            fechaRecordatorio.setDate(fechaRecordatorio.getDate() + 1);
+        }
+
+        // Calcular el tiempo restante para el recordatorio
+        var tiempoRestante = fechaRecordatorio - ahora;
+
+        // Programar la alerta del recordatorio
+        setTimeout(function() {
+            // Mostrar la notificación
+            mostrarNotificacion(mensaje);
+        }, tiempoRestante);
+        
+        // Limpiar el formulario
+        document.getElementById('mensaje').value = '';
+        document.getElementById('hora').value = '';
+        
+        // Confirmar al usuario que el recordatorio se ha guardado
+        alert('Recordatorio guardado correctamente.');
+    });
+
+    // Función para mostrar la notificación
+    function mostrarNotificacion(mensaje) {
+        // Verificar si el navegador soporta notificaciones
+        if (!("Notification" in window)) {
+            alert("Este navegador no soporta notificaciones.");
+        } else if (Notification.permission === "granted") {
+            // Mostrar la notificación si los permisos están concedidos
+            new Notification("Recordatorio", {
+                body: mensaje
+            });
+        } else if (Notification.permission !== 'denied') {
+            // Solicitar permisos al usuario para mostrar notificaciones
+            Notification.requestPermission().then(function (permission) {
+                if (permission === "granted") {
+                    // Mostrar la notificación si los permisos fueron concedidos
+                    new Notification("Recordatorio", {
+                        body: mensaje
+                    });
+                }
+            });
+        }
+    }
+</script>
+
+</body>
+</html>
